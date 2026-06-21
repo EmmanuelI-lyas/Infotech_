@@ -7,3 +7,5 @@ chunks_cleaned/
 titanic/
 __pycache__/
 *.pyc
+try.py
+Scalable_Titanic_Data_Pipeline.pdf

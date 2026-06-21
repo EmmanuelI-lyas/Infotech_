@@ -1,0 +1,9 @@
+name: Deploy LLM Dashboard
+
+on:
+  push:
+    branches:
+      - main
+
+    paths:
+      - '19_jun_llm_tryout/**'
