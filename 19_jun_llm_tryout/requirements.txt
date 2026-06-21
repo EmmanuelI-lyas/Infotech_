@@ -1,4 +1,4 @@
-#requirements.
+#requirements.txxt
 gradio
 openai
 python-dotenv
