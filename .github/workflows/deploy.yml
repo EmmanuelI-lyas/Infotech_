@@ -1,26 +1,44 @@
-- name: Commit & Push
-  run: |
-    cd space
+name: Deploy HF Space
 
-    echo "===== CURRENT DIRECTORY ====="
-    pwd
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "19_jun_llm_tryout/**"
 
-    echo "===== FILES ====="
-    ls -la
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-    echo "===== REMOTES ====="
-    git remote -v
+    steps:
+      - uses: actions/checkout@v4
 
-    git config user.email "actions@github.com"
-    git config user.name "github-actions"
+      - name: Clone HF Space
+        run: |
+          git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/LLM_tryout space
 
-    git add .
+      - name: Copy Files
+        run: |
+          rsync -av --delete 19_jun_llm_tryout/ space/
 
-    if git diff --cached --quiet; then
-      echo "No changes"
-      exit 0
-    fi
+      - name: Commit & Push
+        run: |
+          cd space
 
-    git commit -m "Auto deploy"
+          echo "===== REMOTES ====="
+          git remote -v
 
-    git push
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "Auto deploy"
+
+          git push
