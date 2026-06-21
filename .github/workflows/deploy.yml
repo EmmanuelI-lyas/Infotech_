@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '19_jun_llm_tryout/**'
+      - 'llm_dashboard/**'
 
 jobs:
   deploy:
@@ -17,12 +17,12 @@ jobs:
 
       - name: Clone HF Space
         run: |
-          git clone https://YOUR_HF_USERNAME:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/YOUR_HF_USERNAME/YOUR_SPACE_NAME space
+          git clone https://YOUR_HF_USERNAME:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/YOUR_HF_USERNAME/LLM_tryout
 
       - name: Copy Dashboard Files
         run: |
           rm -rf space/*
-          cp -r 19_jun_llm_tryout/* space/
+          cp -r llm_dashboard/* space/
 
       - name: Push To HF Space
         run: |
