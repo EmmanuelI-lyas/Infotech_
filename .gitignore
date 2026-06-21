@@ -1,2 +1,9 @@
 data/
 venv/
+.env
+reports/
+chunks/
+chunks_cleaned/
+titanic/
+__pycache__/
+*.pyc
