@@ -1,9 +1,35 @@
-name: Deploy LLM Dashboard
+name: Deploy HF Space
 
 on:
   push:
     branches:
       - main
-
     paths:
       - '19_jun_llm_tryout/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Clone HF Space
+        run: |
+          git clone https://YOUR_HF_USERNAME:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/YOUR_HF_USERNAME/YOUR_SPACE_NAME space
+
+      - name: Copy Dashboard Files
+        run: |
+          rm -rf space/*
+          cp -r 19_jun_llm_tryout/* space/
+
+      - name: Push To HF Space
+        run: |
+          cd space
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+
+          git add .
+          git commit -m "Auto deploy" || echo "No changes"
+          git push
