@@ -5,31 +5,35 @@ on:
     branches:
       - main
     paths:
-      - 'llm_dashboard/**'
+      - "19_jun_llm_tryout/**"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Clone HF Space
         run: |
-          git clone https://YOUR_HF_USERNAME:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/YOUR_HF_USERNAME/LLM_tryout
+          git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/LLM_tryout space
 
-      - name: Copy Dashboard Files
+      - name: Copy Files
         run: |
-          rm -rf space/*
-          cp -r llm_dashboard/* space/
+          rsync -av --delete 19_jun_llm_tryout/ space/
 
-      - name: Push To HF Space
+      - name: Commit & Push
         run: |
           cd space
           git config user.email "actions@github.com"
           git config user.name "github-actions"
 
           git add .
-          git commit -m "Auto deploy" || echo "No changes"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Auto deploy"
           git push
