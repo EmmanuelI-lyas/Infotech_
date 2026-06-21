@@ -1,17 +1,55 @@
-- name: Commit & Push
-  run: |
-    echo "Current directory:"
-    pwd
+name: Deploy HF Space
 
-    echo "Root files:"
-    ls -la
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "19_jun_llm_tryout/**"
 
-    echo "Space files:"
-    ls -la space
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-    cd space
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-    echo "After cd:"
-    pwd
+      - name: Clone Hugging Face Space
+        run: |
+          git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/LLM_tryout space
 
-    git remote -v
+      - name: Copy Project Files
+        run: |
+          rsync -av --delete \
+            --exclude=".git" \
+            19_jun_llm_tryout/ space/
+
+      - name: Verify Remote
+        run: |
+          cd space
+
+          git remote remove origin || true
+
+          git remote add origin \
+          https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/LLM_tryout
+
+          git remote -v
+
+      - name: Commit and Push
+        run: |
+          cd space
+
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+            exit 0
+          fi
+
+          git commit -m "Auto deploy from GitHub"
+
+          git push origin main
