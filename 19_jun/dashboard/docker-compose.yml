@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: titanic_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-titanic_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-titanic_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  
+  superset:
+    build:
+      context: ./superset
+    container_name: titanic_superset
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+    volumes:
+      - ./superset_data:/app/superset_home
+
+    ports:
+      - "${SUPERSET_PORT:-8088}:8088"
+
+  postgres-seed:
+    build:
+      context: ./postgress
+    container_name: titanic_postgres_seed
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-titanic_db}
+      TITANIC_TABLE: ${TITANIC_TABLE:-titanic}
+      TITANIC_CSV_PATH: /data/titanic/train.csv
+    volumes:
+      - ../titanic:/data/titanic:ro
+    profiles: ["seed"]
+
+volumes:
+  postgres_data:
